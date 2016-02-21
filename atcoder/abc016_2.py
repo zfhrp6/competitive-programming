@@ -1,0 +1,1 @@
+print((lambda ls:'?' if ls[0]+ls[1]==ls[0]-ls[1]==ls[2] else '+' if ls[0]+ls[1]==ls[2] else '-' if ls[0]-ls[1]==ls[2] else '!')((lambda x:list(map(int,x.split())))(input())))

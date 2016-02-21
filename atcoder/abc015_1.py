@@ -1,0 +1,1 @@
+print((lambda x,y:x if len(x)>len(y) else y)(input(),input()))

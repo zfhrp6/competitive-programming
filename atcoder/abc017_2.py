@@ -1,0 +1,1 @@
+print('YES' if (lambda f: (lambda x: f(lambda y: x(x)(y)))(lambda x: f(lambda y: x(x)(y))))((lambda f: lambda x:True if x=='' else f(x[:-2]) if x[-2:]=='ch' else f(x[:-1]) if x[-1:] in 'oku' else False))(input()) else 'NO')

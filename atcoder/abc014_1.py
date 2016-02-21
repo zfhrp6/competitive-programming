@@ -1,0 +1,1 @@
+print((lambda x,y:0 if x==y else y-x%y)(int(input()),int(input())))

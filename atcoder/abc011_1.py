@@ -1,0 +1,1 @@
+(lambda x:print(1) if x=='12' else print(int(x)+1))(input())

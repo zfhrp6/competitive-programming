@@ -1,0 +1,1 @@
+print(sum((lambda x:map(lambda x:x[0]*x[1]//10,x))(list(map(lambda x:tuple(map(int,x.split())),[input(),input(),input()])))))

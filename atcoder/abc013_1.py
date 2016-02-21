@@ -1,0 +1,1 @@
+(lambda x:print(ord(x)-64))(input())

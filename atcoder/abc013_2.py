@@ -1,0 +1,1 @@
+(lambda x,y:print(min(map(abs,[x-y,10+x-y,x-10-y]))))(int(input()),int(input()))

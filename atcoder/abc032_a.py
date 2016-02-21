@@ -1,0 +1,6 @@
+g=lambda a,b:a if b==0 else g(b, a%b)
+l=lambda a,b:a*b//g(a,b)
+a=int(input())
+b=int(input())
+n=int(input())
+print(n if n%l(a,b)==0 else n-n%l(a,b)+l(a,b))

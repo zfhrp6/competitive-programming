@@ -1,0 +1,1 @@
+(lambda x:print('{} {}'.format(x[1], x[0])))( (lambda x:x.split())(input()))

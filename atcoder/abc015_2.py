@@ -1,0 +1,1 @@
+print((lambda x:int(x//1+(1 if x%1 else 0)))((lambda x:sum(x)/len(x))((lambda _,x:list(filter(lambda x:x>0, map(int,x.split()))))(input(),input()))))

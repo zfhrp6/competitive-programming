@@ -1,0 +1,1 @@
+(lambda x:print(x[0].upper()+''.join(map(str.lower, x[1:]))))(input())

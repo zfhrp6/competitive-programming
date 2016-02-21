@@ -1,0 +1,1 @@
+a,b=map(int,input().split());c=abs(a-b);l=[0,1,2,3,2,1,2,3,3,2];print(c//10+l[c%10])
