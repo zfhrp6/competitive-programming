@@ -1,0 +1,9 @@
+Case #1: 4
+Case #2: 3
+Case #3: 3
+Case #4: 6
+Case #5: 3
+Case #6: 26
+Case #7: 4
+Case #8: 91
+Case #9: 100
