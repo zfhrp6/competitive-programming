@@ -21,5 +21,10 @@
 
 * run
   ```console
-  poetry run python solver.py
+  make run
+  ```
+
+* update score
+  ```console
+  make scoring
   ```
