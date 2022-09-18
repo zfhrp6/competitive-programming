@@ -2,16 +2,24 @@
 
 [AHC014](https://atcoder.jp/contests/ahc014/tasks/ahc014_a)
 
+## requirements
+
+* python 3.8.2
+* poetry
+
 ## usage
 
-* test
+* install dependencies
+  ```console
+  poetry install
+  ```
 
+* test
   ```console
   make test
   ```
 
 * run
-
   ```console
   pipenv run python solver.py
   ```

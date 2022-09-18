@@ -5,7 +5,7 @@ import random
 from collections import namedtuple
 from functools import cached_property
 from sys import stderr
-from typing import Iterator, List, Tuple, Set, Literal, TypeVar
+from typing import Iterator, List, Tuple, Set, Literal, TypeVar, Union
 
 random.seed(2)
 
@@ -72,7 +72,7 @@ class Line:
 
 
 class Board:
-    def __init__(self, n: int, points: List[Coord | Tuple[int, int]]):
+    def __init__(self, n: int, points: List[Union[Coord, Tuple[int, int]]]):
         self.size = n
         self._field = [[Empty for _ in range(n)] for _ in range(n)]
         for p in points:
@@ -110,7 +110,11 @@ class Board:
     def _out_of_range(self, x, y):
         return x < 0 or x >= self.size or y < 0 or y >= self.size
 
-    def get_line_points(self, p: Coord | Tuple[int, int], mode: Literal['x', 'y', 'up', 'down', 'all']) -> List[Coord]:
+    def get_line_points(
+            self,
+            p: Union[Coord, Tuple[int, int]],
+            mode: Literal['x', 'y', 'up', 'down', 'all']
+    ) -> List[Coord]:
         """
         get points on the same line from p. 
 
