@@ -1,37 +1,26 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+from collections import namedtuple
 from sys import stderr
-from typing import List, Tuple, Set
+from typing import List, Tuple, Set, Literal
 
 X = 'x'
 Empty = '.'
 
 
-class Coord:
-    def __init__(self, x: int, y: int):
-        self._x = x
-        self._y = y
-
+class Coord(namedtuple('Coord', ['x', 'y'])):
     def __repr__(self):
         return f'({self.x}, {self.y})'
 
-    @property
-    def x(self) -> int:
-        return self._x
-
-    @property
-    def y(self) -> int:
-        return self._y
-
 
 class Board:
-    def __init__(self, n: int, points: List[Coord]):
+    def __init__(self, n: int, points: List[Coord | Tuple[int, int]]):
         self.size = n
         self._field = [[Empty for _ in range(n)] for _ in range(n)]
-        for raw_p in points:
-            # noinspection PyArgumentList
-            p = Coord(*raw_p)
+        for p in points:
+            if not isinstance(p, Coord):
+                p = Coord(*p)
             self._field[p.y][p.x] = X
         self._points = {p for p in points}
         self._choices: List[Tuple[Coord, List[Coord | Tuple[int, int]]]] = []
@@ -40,45 +29,50 @@ class Board:
     def points(self) -> Set[Coord]:
         return self._points
 
-    def get_line_points(self, p: Coord | Tuple[int, int], mode: str = None) -> List[Coord]:
+    def get_line_points(self, p: Coord | Tuple[int, int], mode: Literal['x', 'y', 'up', 'down', 'all']) -> List[Coord]:
         """
         get points on the same line from p. 
 
         Args:
             p: point from
-            mode: 'x' | 'y' | 'up' | 'down'
+            mode: 'x' | 'y' | 'up' | 'down' | 'all'
         """
+        mode_set = {'x', 'y', 'up', 'down', 'all'}
         points = []
         if not isinstance(p, Coord):
-            # noinspection PyArgumentList
             p = Coord(*p)
+        if mode not in mode_set:
+            raise ValueError(f"mode must be {' or '.join(mode_set)}")
         for i in range(self.size):
-            if mode == 'x':
-                y = p.y
-                x = i
-            elif mode == 'y':
-                y = i
-                x = p.x
-            elif mode == 'up':  # positive gradient
-                y = p.y - p.x + i
-                x = i
-            elif mode == 'down':  # negative gradient
-                y = p.y + p.x - i
-                x = i
-            else:
-                raise ValueError("mode must be 'x' or 'y' or 'up' or 'down'")
-            if y == p.y and x == p.x:
-                continue
-            if self._field[y][x] == X:
-                points.append(Coord(x, y))
-        return points
+            if mode == 'x' or mode == 'all':
+                x, y = i, p.y
+                if self._field[y][x] == X:
+                    points.append(Coord(x, y))
+            if mode == 'y' or mode == 'all':
+                x, y = p.x, i
+                if self._field[y][x] == X:
+                    points.append(Coord(x, y))
+            if mode == 'up' or mode == 'all':  # positive gradient
+                x, y = i, (p.y - p.x + i)
+                if y < 0 or y >= self.size or x < 0 or x >= self.size:
+                    continue
+                if self._field[y][x] == X:
+                    points.append(Coord(x, y))
+            if mode == 'down' or mode == 'all':  # negative gradient
+                x, y = i, (p.y + p.x - i)
+                if y < 0 or y >= self.size or x < 0 or x >= self.size:
+                    continue
+                if self._field[y][x] == X:
+                    points.append(Coord(x, y))
+        ret = list(set(points))
+        if p in ret:
+            ret.remove(p)
+        return ret
 
     def choose(self, new_point: Coord | Tuple[int, int], existing_3_points: List[Coord | Tuple[int, int]]):
         if not isinstance(new_point, Coord):
-            # noinspection PyArgumentList
             new_point = Coord(*new_point)
         if not isinstance(existing_3_points[0], Coord):
-            # noinspection PyArgumentList
             existing_3_points = [Coord(*p) for p in existing_3_points]
         if len(existing_3_points) != 3:
             raise ValueError('3 existing points required')
@@ -120,17 +114,18 @@ def solve(board: Board):
     # board.debug(points=False)
     board.choose((9, 15), [(12, 12), (15, 15), (12, 18)])
     board.debug(points=False)
-    print([str(p) for p in board.get_line_points((9, 15), mode='x')])
-    print([str(p) for p in board.get_line_points((9, 15), mode='y')])
-    print([str(p) for p in board.get_line_points((9, 15), mode='up')])
-    print([str(p) for p in board.get_line_points((9, 15), mode='down')])
+    print(board.get_line_points((9, 15), mode='x'))
+    print(board.get_line_points((9, 15), mode='y'))
+    print(board.get_line_points((9, 15), mode='up'))
+    print(board.get_line_points((9, 15), mode='down'))
+    print(board.get_line_points((9, 15), mode='all'))
     pass
 
 
 def read_input() -> Board:
     n, m = list(map(int, input().split()))
     initial_points = []
-    for i in range(m):
+    for _ in range(m):
         px, py = list(map(int, input().split()))
         initial_points.append(Coord(px, py))
     return Board(n, initial_points)
