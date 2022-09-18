@@ -1,2 +1,2 @@
 test:
-	pipenv run python3 -m unittest -v tests/test_*
+	pipenv run python3 -m pytest -vvv tests/test_*

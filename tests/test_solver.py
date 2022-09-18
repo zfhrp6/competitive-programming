@@ -1,5 +1,3 @@
-import unittest
-
 from solver import Board, Coord
 
 TEST_BOARD_INPUT = '''13 24
@@ -61,7 +59,11 @@ TEST_BOARD_INPUT = '''13 24
 18 11
 24 11'''
 
-class TestSolver(unittest.TestCase):
+
+class TestSolver:
+    def setup_method(self):
+        self.initialize()
+
     def initialize(self):
         n, m = 33, 58
         initial_points = []
@@ -71,19 +73,79 @@ class TestSolver(unittest.TestCase):
             initial_points.append(Coord(px, py))
         self.board = Board(n, initial_points)
 
-    def test_get_line_points(self):
-        self.initialize()
-        x = sorted(self.board.get_line_points((9, 15), mode='x'))
-        assert x == sorted([(22, 15), (12, 15), (18, 15), (8, 15), (15, 15)]), x
-        y = sorted(self.board.get_line_points((9, 15), mode='y'))
-        assert y == sorted([(9, 20), (9, 14)]), y
-        up = sorted(self.board.get_line_points((9, 15), mode='up'))
-        assert up == sorted([(12, 18)]), up
-        down = sorted(self.board.get_line_points((9, 15), mode='down'))
-        assert down == sorted([(12, 12), (8, 16)]), down
-        all_ = sorted(self.board.get_line_points((9, 15), mode='all'))
-        assert all_ == sorted([(22, 15), (8, 16), (12, 12), (9, 14), (12, 15), (18, 15), (12, 18), (8, 15), (9, 20), (15, 15)]), all_
+    def test_get_line_points_x(self):
+        x = self.board.get_line_points((12, 18), mode='x')
+        assert x == [(8, 18), (15, 18)], x
 
+    def test_get_line_points_y(self):
+        y = self.board.get_line_points((15, 18), mode='y')
+        assert y == sorted([(15, 17), (15, 19)]), y
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_get_line_points_up(self):
+        up = self.board.get_line_points((12, 18), mode='up')
+        assert up == [], up
+
+    def test_get_line_points_down(self):
+        down = self.board.get_line_points((12, 18), mode='down')
+        assert down == [(15, 15)], down
+
+    def test_get_line_points_all(self):
+        all_ = self.board.get_line_points((12, 18), mode='all')
+        assert all_ == sorted([(8, 18), (15, 18), (12, 17), (12, 23), (15, 15)]), all_
+
+    def test_score(self):
+        actual = self.board.score
+        assert actual == 202641, actual
+
+        self.board.choose(Coord(9, 15), tuple((Coord(12, 12), Coord(15, 15), Coord(12, 18))))
+
+        actual = self.board.score
+        assert actual == 207464, actual
+
+    def test_search_candidates_from_point(self):
+        x_y_expected = [
+            ((12, 19), ((12, 18), (8, 18), (8, 19))),
+            ((12, 19), ((12, 18), (15, 18), (15, 19))),
+        ]
+        y_x_expected = [
+            # empty
+        ]
+        up_down_expected = [
+            # empty
+        ]
+        down_up_expected = [
+            ((9, 15), ((12, 18), (15, 15), (12, 12))),
+            ((15, 21), ((12, 18), (15, 15), (18, 18))),
+        ]
+
+        candidates = list(sorted(self.board.search_candidate_choices_from_point(Coord(12, 18))))
+        print('len', len(candidates))
+        for c in candidates:
+            print(c)
+        assert candidates == sorted(x_y_expected + y_x_expected + up_down_expected + down_up_expected), candidates
+
+    def test_is_vacancy(self):
+        assert self.board.is_vacancy(Coord(9, 15), Coord(9, 15)) == False
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(12, 15)) == True
+        assert self.board.is_vacancy(Coord(9, 15), Coord(15, 15)) == False
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(12, 18)) == True
+        assert self.board.is_vacancy(Coord(9, 15), Coord(13, 19)) == False
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(9, 20)) == True
+        assert self.board.is_vacancy(Coord(9, 15), Coord(9, 21)) == False
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(8, 16)) == True
+        assert self.board.is_vacancy(Coord(9, 15), Coord(7, 17)) == False
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(8, 15)) == True
+        assert self.board.is_vacancy(Coord(9, 15), Coord(7, 15)) == False
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(8, 14)) == True
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(9, 14)) == True
+        assert self.board.is_vacancy(Coord(9, 15), Coord(9, 13)) == False
+
+        assert self.board.is_vacancy(Coord(9, 15), Coord(12, 12)) == True
+        assert self.board.is_vacancy(Coord(9, 15), Coord(13, 11)) == False
