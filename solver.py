@@ -405,7 +405,7 @@ def read_input() -> Board:
 
 
 def output(board: Board):
-    print('output', file=stderr)
+    # print('output', file=stderr)
     print(board.choices_count)
     for c in board.choices:
         new_p = c[0]

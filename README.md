@@ -21,5 +21,5 @@
 
 * run
   ```console
-  pipenv run python solver.py
+  poetry run python solver.py
   ```
