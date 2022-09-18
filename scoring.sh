@@ -1,9 +1,7 @@
 cd tools;
 
 rm ../scores.txt
-for f in $(ls in/); do
-  cargo run --bin vis in/$f out/$f 2>/dev/null >> ../scores.txt
-done
+ls in | xargs -I% -P12 cargo run --bin vis in/% out/% 2>/dev/null >> ../scores.txt
 
 cd ../;
 
