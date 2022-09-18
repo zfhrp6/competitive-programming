@@ -1,4 +1,1 @@
-for f in $(ls tools/in); do
-  echo $f;
-  cat tools/in/$f | poetry run python solver.py - > tools/out/$f &
-done
+ls tools/in | xargs -I% -P12 bash -c 'echo %; cat tools/in/% | poetry run python solver.py - > tools/out/%'
