@@ -8,3 +8,5 @@ done
 cd ../;
 
 awk '{s += $3} END {print s}' scores.txt > total_score.txt
+
+git --no-pager diff total_score.txt

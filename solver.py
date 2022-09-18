@@ -306,7 +306,9 @@ class Board:
                 if p_ in choice_lattice:
                     return False
             return (
-                    c[0] not in self.points
+                    0 <= c[0].y < self.size
+                    and 0 <= c[0].x < self.size
+                    and c[0] not in self.points
                     and self.is_vacancy(c[0], c[1][0])
                     and self.is_vacancy(c[0], c[1][2])
                     and not self.is_on_any_line(c[0])
@@ -405,8 +407,8 @@ def solve(board: Board) -> Board:
     start_time = time()
     from itertools import islice
     # board.choose((9, 15), [(12, 12), (15, 15), (12, 18)])
-    for i in range(70):
-        num_of_can = 5
+    while True:
+        num_of_can = 7
         candidates = list(islice(board.search_candidate_choices(), num_of_can))
         num_of_can = len(candidates)
         if time() - start_time > 4.5:
