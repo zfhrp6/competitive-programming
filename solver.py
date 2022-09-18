@@ -12,7 +12,8 @@ random.seed(2)
 X = 'x'
 Empty = '.'
 
-SelfCoord = TypeVar("SelfCoord", bound="Coord")
+SelfCoord = TypeVar('SelfCoord', bound='Coord')
+SelfBoard = TypeVar('SelfBoard', bound='Board')
 
 
 class Coord(namedtuple('Coord', ['x', 'y'])):
@@ -72,13 +73,12 @@ class Line:
 
 
 class Board:
-    def __init__(self, n: int, points: List[Union[Coord, Tuple[int, int]]]):
+    def __init__(self, n: int, points: List[Coord]):
         self.size = n
         self._field = [[Empty for _ in range(n)] for _ in range(n)]
         for p in points:
-            if not isinstance(p, Coord):
-                p = Coord(*p)
             self._field[p.y][p.x] = X
+        self._initial_points = points
         self._number_of_initial_points = len(points)
         self._points = {p for p in points}
         self._choices: List[Choice] = []
@@ -363,6 +363,15 @@ class Board:
     def choices(self) -> List[Tuple[Coord, Tuple[Coord, Coord, Coord]]]:
         return self._choices
 
+    def copy(self) -> SelfBoard:
+        from copy import deepcopy
+        b = Board(self.size, self._initial_points)
+        b._field = deepcopy(self._field)
+        b._choices = deepcopy(self._choices)
+        b._lines = deepcopy(self._lines)
+        b._points = deepcopy(self._points)
+        return b
+
     def debug(self, field=True, choices=True, points=True):
         print('debug', file=stderr)
 
@@ -386,13 +395,29 @@ class Board:
                 print(p)
 
 
-def solve(board: Board):
+def copy(board: Board, n: int) -> List[Board]:
+    from copy import deepcopy
+    return [deepcopy(board) for _ in range(n)]
+
+
+def solve(board: Board) -> Board:
+    from time import time
+    start_time = time()
+    from itertools import islice
     # board.choose((9, 15), [(12, 12), (15, 15), (12, 18)])
     for i in range(70):
-        for c in board.search_candidate_choices():
-            if random.random() < 0.7:
-                board.choose(*c)
-                break
+        num_of_can = 5
+        candidates = list(islice(board.search_candidate_choices(), num_of_can))
+        num_of_can = len(candidates)
+        if time() - start_time > 4.5:
+            break
+        if num_of_can == 0:
+            break
+        bs = [board.copy() for _ in range(num_of_can)]
+        for ci in range(num_of_can):
+            bs[ci].choose(*candidates[ci])
+        board = sorted(bs, key=lambda b: b.score, reverse=True)[0]
+    return board
 
 
 def read_input() -> Board:
@@ -416,7 +441,7 @@ def output(board: Board):
 
 def main():
     board = read_input()
-    solve(board)
+    board = solve(board)
     output(board)
 
 
