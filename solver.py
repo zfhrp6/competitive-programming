@@ -5,7 +5,7 @@ import random
 from collections import namedtuple
 from functools import cached_property
 from sys import stderr
-from typing import Iterator, List, Tuple, Set, Literal, TypeVar, Union
+from typing import Iterator, List, Tuple, Set, Literal, TypeVar
 
 random.seed(2)
 
@@ -14,7 +14,7 @@ Empty = '.'
 
 SelfCoord = TypeVar('SelfCoord', bound='Coord')
 SelfBoard = TypeVar('SelfBoard', bound='Board')
-SelfLine = TypeVar('SelfLine', bound='LIne')
+SelfLine = TypeVar('SelfLine', bound='Line')
 
 
 class Coord(namedtuple('Coord', ['x', 'y'])):
@@ -134,7 +134,7 @@ class Board:
 
     def get_line_points(
             self,
-            p: Union[Coord, Tuple[int, int]],
+            p: Coord,
             mode: Literal['x', 'y', 'up', 'down', 'all']
     ) -> List[Coord]:
         """
