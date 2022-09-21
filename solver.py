@@ -366,12 +366,11 @@ class Board:
         return self._choices
 
     def copy(self) -> SelfBoard:
-        from copy import deepcopy
         b = Board(self.size, self._initial_points)
-        b._field = deepcopy(self._field)
-        b._choices = deepcopy(self._choices)
-        b._lines = deepcopy(self._lines)
-        b._points = deepcopy(self._points)
+        b._field = [[self._field[y][x] for x in range(self.size)] for y in range(self.size)]
+        b._choices = [choice for choice in self._choices]
+        b._lines = {line for line in self._lines}
+        b._points = {p for p in self._points}
         return b
 
     def debug(self, field=True, choices=True, points=True):
@@ -395,11 +394,6 @@ class Board:
             print('points', file=stderr)
             for p in self._points:
                 print(p)
-
-
-def copy(board: Board, n: int) -> List[Board]:
-    from copy import deepcopy
-    return [deepcopy(board) for _ in range(n)]
 
 
 def solve(board: Board) -> Board:
