@@ -73,6 +73,10 @@ class TestSolver:
             initial_points.append(Coord(px, py))
         self.board = Board(n, initial_points)
 
+    def test_board_weight(self):
+        w = self.board.board_weight
+        assert w == 198561, w
+
     def test_get_line_points_x(self):
         x = self.board.get_line_points((12, 18), mode='x')
         assert x == [(8, 18), (15, 18)], x

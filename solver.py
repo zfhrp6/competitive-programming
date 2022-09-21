@@ -3,6 +3,7 @@
 
 import random
 from collections import namedtuple
+from functools import cached_property
 from sys import stderr
 from typing import Iterator, List, Tuple, Set, Literal, TypeVar, Union
 
@@ -101,10 +102,17 @@ class Board:
         self._points = {p for p in points}
         self._choices: List[Choice] = []
         self._lines: Set[Line] = set()
-        self._board_weight = 0
-        for x in range(self.size):
-            for y in range(self.size):
-                self._board_weight += self.weight(self.size, x, y)
+
+    @cached_property
+    def board_weight(self) -> float:
+        n = self.size
+        c = (n - 1) / 2
+        return (
+                n ** 2
+                + 2 * (n ** 2) * ((c + 1) ** 2)
+                - 2 * (c + 1) * (n ** 2) * (n + 1)
+                + (1 / 3) * (n ** 2) * (n + 1) * (2 * n + 1)
+        )
 
     @property
     def points(self) -> Set[Coord]:
@@ -118,7 +126,7 @@ class Board:
     @property
     def score(self) -> int:
         sum_of_w = sum([self.weight(self.size, p.x, p.y) for p in self.points])
-        score = ((10 ** 6) * (self.size ** 2) * sum_of_w) / (self._number_of_initial_points * self._board_weight)
+        score = ((10 ** 6) * (self.size ** 2) * sum_of_w) / (self._number_of_initial_points * self.board_weight)
         return round(score)
 
     def _out_of_range(self, x, y):
@@ -369,7 +377,6 @@ class Board:
         b._choices = [choice for choice in self._choices]
         b._lines = {line for line in self._lines}
         b._points = {p for p in self._points}
-        b._board_weight = self._board_weight
         return b
 
     def debug(self, field=True, choices=True, points=True):
