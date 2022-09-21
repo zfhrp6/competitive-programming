@@ -1,4 +1,6 @@
-.PHONY: profile test run
+.PHONY: profile test run all
+
+all: test run profile
 
 test:
 	poetry run python -m pytest -vvv tests/test_*

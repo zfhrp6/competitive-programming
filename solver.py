@@ -14,6 +14,7 @@ Empty = '.'
 
 SelfCoord = TypeVar('SelfCoord', bound='Coord')
 SelfBoard = TypeVar('SelfBoard', bound='Board')
+SelfLine = TypeVar('SelfLine', bound='LIne')
 
 
 class Coord(namedtuple('Coord', ['x', 'y'])):
@@ -31,8 +32,12 @@ Choice = Tuple[Coord, Tuple[Coord, Coord, Coord]]
 
 
 class Line:
+    """
+    1-unit line
+    """
+
     def __init__(self, s: Coord, e: Coord):
-        if s.x == e.x and s.y > e.y:
+        if s.y > e.y:
             s, e = e, s
         if s.x > e.x:
             s, e = e, s
@@ -44,10 +49,38 @@ class Line:
         return hash(self._tuple)
 
     def __repr__(self):
-        return f'({self._s.x},{self._s.y}),({self._e.x},{self._e.y})'
+        return f'({self._s.x},{self._s.y})-({self._e.x},{self._e.y})'
 
     def __eq__(self, other):
         return self._s == other.s and self._e == other.e
+
+    @classmethod
+    def new(cls, s: Coord, e: Coord) -> List[SelfLine]:
+        if abs(e.x - s.x) < 2 and abs(e.y - s.y) < 2:
+            return [Line(s, e)]
+        return list(cls._split_line(s, e))
+
+    @classmethod
+    def _split_line(cls, s: Coord, e: Coord) -> Iterator[SelfLine]:
+        if s.y > e.y:
+            s, e = e, s
+        if s.x > e.x:
+            s, e = e, s
+        # s must be left than(or equal) e, s may be left than (or equal) e.
+
+        if s.x == e.x:
+            for i in range(0, abs(e.y - s.y)):
+                yield Line(Coord(s.x, s.y + i),
+                           Coord(s.x, s.y + (i + 1)))
+        elif s.y == e.y:
+            for i in range(0, abs(e.x - s.x)):
+                yield Line(Coord(s.x + i, s.y),
+                           Coord(s.x + (i + 1), s.y))
+        else:
+            sgn = 1 if e.y > s.y else -1
+            for i in range(0, abs(e.y - s.y)):
+                yield Line(Coord(s.x + i, s.y + sgn * i),
+                           Coord(s.x + (i + 1), s.y + sgn * (i + 1)))
 
     @property
     def e(self):
@@ -56,20 +89,6 @@ class Line:
     @property
     def s(self):
         return self._s
-
-    def internal_lattice(self) -> Iterator[Coord]:
-        if self.s.x == self.e.x:
-            for i in range(1, self.e.y - self.s.y):
-                yield Coord(self.s.x, self.s.y + i)
-        elif self.s.y == self.e.y:
-            for i in range(1, self.e.x - self.s.x):
-                yield Coord(self.s.x + i, self.s.y)
-        elif self.s.y < self.e.y:
-            for i in range(1, self.e.y - self.s.y):
-                yield Coord(self.s.x + i, self.s.y + i)
-        else:  # s.y > e.y
-            for i in range(1, self.s.y - self.e.y):
-                yield Coord(self.s.x + i, self.s.y - i)
 
 
 class Board:
@@ -82,7 +101,7 @@ class Board:
         self._number_of_initial_points = len(points)
         self._points = {p for p in points}
         self._choices: List[Choice] = []
-        self._lines = set()
+        self._lines: Set[Line] = set()
 
     @property
     def points(self) -> Set[Coord]:
@@ -203,12 +222,12 @@ class Board:
     def _calc_choice_lines(c: Choice) -> List[Line]:
         np = c[0]
         others = c[1]
-        return [
-            Line(np, others[0]),
-            Line(others[0], others[1]),
-            Line(others[1], others[2]),
-            Line(others[2], np),
-        ]
+        return sum([
+            Line.new(np, others[0]),
+            Line.new(others[0], others[1]),
+            Line.new(others[1], others[2]),
+            Line.new(others[2], np),
+        ], [])
 
     def choose(self, new_point: Coord, existing_3_points: Tuple[Coord, Coord, Coord]):
         if not isinstance(new_point, Coord):
@@ -222,7 +241,8 @@ class Board:
         self._choices.append((new_point, existing_3_points))
         self._field[new_point.y][new_point.x] = X
         self._points.add(new_point)
-        self._lines.update(self._calc_choice_lines((new_point, existing_3_points)))
+        new_lines = self._calc_choice_lines((new_point, existing_3_points))
+        self._lines.update(new_lines)
 
     def is_vacancy(self, s: Coord, e: Coord) -> bool:
         """
@@ -278,19 +298,10 @@ class Board:
                         return False
                 return True
 
-    @staticmethod
-    def is_on_line(p: Coord, line: Line) -> bool:
-        return p in line.internal_lattice()
-
-    def is_on_any_line(self, p: Coord) -> bool:
-        """
-        check p is on any line
-
-        Returns:
-            bool: True if p is on any line
-        """
-        for line in self._lines:
-            if self.is_on_line(p, line):
+    def is_overlapped(self, c: Choice) -> bool:
+        lines = self._calc_choice_lines(c)
+        for line in lines:
+            if line in self._lines:
                 return True
         return False
 
@@ -299,19 +310,13 @@ class Board:
             lines = self._calc_choice_lines(c)
             if set(lines) & self._lines:
                 return False
-            choice_lattice = []
-            for line in lines:
-                choice_lattice.extend(line.internal_lattice())
-            for p_ in self.points:
-                if p_ in choice_lattice:
-                    return False
             return (
                     0 <= c[0].y < self.size
                     and 0 <= c[0].x < self.size
                     and c[0] not in self.points
                     and self.is_vacancy(c[0], c[1][0])
                     and self.is_vacancy(c[0], c[1][2])
-                    and not self.is_on_any_line(c[0])
+                    and not self.is_overlapped(c)
             )
 
         if p not in self.points:
@@ -400,7 +405,6 @@ def solve(board: Board) -> Board:
     from time import time
     start_time = time()
     from itertools import islice
-    # board.choose((9, 15), [(12, 12), (15, 15), (12, 18)])
     while True:
         num_of_can = 15
         candidates = list(islice(board.search_candidate_choices(), num_of_can))
