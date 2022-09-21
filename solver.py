@@ -136,7 +136,7 @@ class Board:
             self,
             p: Coord,
             mode: Literal['x', 'y', 'up', 'down', 'all']
-    ) -> List[Coord]:
+    ) -> Iterator[Coord]:
         """
         get points on the same line from p. 
 
@@ -145,7 +145,6 @@ class Board:
             mode: search mode
         """
         mode_set = {'x', 'y', 'up', 'down', 'all'}
-        points = []
         if not isinstance(p, Coord):
             p = Coord(*p)
         if mode not in mode_set:
@@ -156,16 +155,20 @@ class Board:
                 x, y = p.x + i, p.y
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
 
             for i in range(1, self.size - 1):
                 x, y = p.x - i, p.y
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
 
         if mode == 'y' or mode == 'all':
@@ -173,15 +176,19 @@ class Board:
                 x, y = p.x, p.y + i
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
             for i in range(1, self.size - 1):
                 x, y = p.x, p.y - i
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
 
         if mode == 'up' or mode == 'all':  # positive gradient
@@ -189,15 +196,19 @@ class Board:
                 x, y = p.x + i, p.y + i
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
             for i in range(1, self.size - 1):
                 x, y = p.x - i, p.y - i
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
 
         if mode == 'down' or mode == 'all':  # negative gradient
@@ -205,21 +216,20 @@ class Board:
                 x, y = p.x + i, p.y - i
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
             for i in range(1, self.size - 1):
                 x, y = p.x - i, p.y + i
                 if self._out_of_range(x, y):
                     break
+                if x == p.x and y == p.y:
+                    continue
                 if self._field[y][x] == X:
-                    points.append(Coord(x, y))
+                    yield Coord(x, y)
                     break
-
-        ret = list(set(points))
-        if p in ret:
-            ret.remove(p)
-        return sorted(ret)
 
     @staticmethod
     def _calc_choice_lines(c: Choice) -> Iterator[Line]:
@@ -429,12 +439,15 @@ def solve2(board: Board) -> Board:
     from time import time
     start_time = time()
     from itertools import islice
-    max_num_of_can = 10
-    b1, b2 = board, board
+    max_num_of_can = 5
+    b1, b2, b3 = board, None, None
     while True:
         if time() - start_time > 4.5:
             break
-        max1_score = max2_score = 0
+        max1_score = max2_score = max3_score = 0
+        # b1s = []
+        b2s = []
+        b3s = []
 
         candidates1 = list(islice(b1.search_candidate_choices(), max_num_of_can))
         num_of_can1 = len(candidates1)
@@ -444,18 +457,28 @@ def solve2(board: Board) -> Board:
             c = candidates1[ci]
             b.choose(*c)
 
-        candidates2 = list(islice(b2.search_candidate_choices(), max_num_of_can))
-        num_of_can2 = len(candidates2)
-        b2s = [b2.copy() for _ in range(num_of_can2)]
-        for ci in range(num_of_can2):
-            b = b2s[ci]
-            c = candidates2[ci]
-            b.choose(*c)
+        if b2:
+            candidates2 = list(islice(b2.search_candidate_choices(), max_num_of_can))
+            num_of_can2 = len(candidates2)
+            b2s = [b2.copy() for _ in range(num_of_can2)]
+            for ci in range(num_of_can2):
+                b = b2s[ci]
+                c = candidates2[ci]
+                b.choose(*c)
 
-        if not b1s and not b2s:
+        if b3:
+            candidates3 = list(islice(b3.search_candidate_choices(), max_num_of_can))
+            num_of_can3 = len(candidates3)
+            b3s = [b3.copy() for _ in range(num_of_can3)]
+            for ci in range(num_of_can3):
+                b = b3s[ci]
+                c = candidates3[ci]
+                b.choose(*c)
+
+        if not b1s and not b2s and not b3s:
             break
 
-        for b in b1s + b2s:
+        for b in b1s + b2s + b3s:
             s = b.score
             if s > max1_score:
                 b1 = b
@@ -463,15 +486,21 @@ def solve2(board: Board) -> Board:
             elif s > max2_score:
                 b2 = b
                 max2_score = s
+            elif s > max3_score:
+                b3 = b
+                max3_score = s
 
         # print(b1.choices_count, file=stderr)
         # print(b2.choices_count, file=stderr)
         # print('-', file=stderr)
 
-    if b1.score > b2.score:
+    s1, s2, s3 = b1.score, b2.score, b3.score
+    if s1 > s2 and s1 > s3:
         return b1
-    else:
+    elif s2 > s1 and s2 > s3:
         return b2
+    else:
+        return b3
 
 
 def read_input() -> Board:

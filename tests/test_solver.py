@@ -79,22 +79,27 @@ class TestSolver:
 
     def test_get_line_points_x(self):
         x = self.board.get_line_points(Coord(12, 18), mode='x')
+        x = list(sorted(x))
         assert x == [(8, 18), (15, 18)], x
 
     def test_get_line_points_y(self):
         y = self.board.get_line_points(Coord(15, 18), mode='y')
+        y = list(sorted(y))
         assert y == sorted([(15, 17), (15, 19)]), y
 
     def test_get_line_points_up(self):
         up = self.board.get_line_points(Coord(12, 18), mode='up')
+        up = list(sorted(up))
         assert up == [], up
 
     def test_get_line_points_down(self):
         down = self.board.get_line_points(Coord(12, 18), mode='down')
+        down = list(sorted(down))
         assert down == [(15, 15)], down
 
     def test_get_line_points_all(self):
         all_ = self.board.get_line_points(Coord(12, 18), mode='all')
+        all_ = list(sorted(all_))
         assert all_ == sorted([(8, 18), (15, 18), (12, 17), (12, 23), (15, 15)]), all_
 
     def test_score(self):
