@@ -402,7 +402,7 @@ def solve(board: Board) -> Board:
     from itertools import islice
     # board.choose((9, 15), [(12, 12), (15, 15), (12, 18)])
     while True:
-        num_of_can = 10
+        num_of_can = 15
         candidates = list(islice(board.search_candidate_choices(), num_of_can))
         num_of_can = len(candidates)
         if time() - start_time > 4.5:
