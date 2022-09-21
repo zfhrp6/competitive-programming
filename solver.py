@@ -402,32 +402,26 @@ class Board:
                 print(p)
 
 
-def search_next_board(board: Board) -> (Board, bool):
-    from itertools import islice
-    max_num_of_candidates = 15
-    candidates = list(islice(board.search_candidate_choices(), max_num_of_candidates))
-    num_of_candidates = len(candidates)
-    if num_of_candidates == 0:
-        return board, False
-    bs = [board.copy() for _ in range(num_of_candidates)]
-    max_score = 0
-    for ci in range(num_of_candidates):
-        b = bs[ci]
-        b.choose(*candidates[ci])
-        if b.score > max_score:
-            board = b
-    return board, True
-
-
 def solve(board: Board) -> Board:
     from time import time
     start_time = time()
+    from itertools import islice
     while True:
+        num_of_can = 15
+        candidates = list(islice(board.search_candidate_choices(), num_of_can))
+        num_of_can = len(candidates)
         if time() - start_time > 4.5:
             break
-        board, searchable = search_next_board(board)
-        if not searchable:
+        if num_of_can == 0:
             break
+        bs = [board.copy() for _ in range(num_of_can)]
+        max_score = 0
+        for ci in range(num_of_can):
+            b = bs[ci]
+            c = candidates[ci]
+            b.choose(*c)
+            if b.score > max_score:
+                board = b
     return board
 
 
