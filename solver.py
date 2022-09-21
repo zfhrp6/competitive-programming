@@ -425,6 +425,55 @@ def solve(board: Board) -> Board:
     return board
 
 
+def solve2(board: Board) -> Board:
+    from time import time
+    start_time = time()
+    from itertools import islice
+    max_num_of_can = 10
+    b1, b2 = board, board
+    while True:
+        if time() - start_time > 4.5:
+            break
+        max1_score = max2_score = 0
+
+        candidates1 = list(islice(b1.search_candidate_choices(), max_num_of_can))
+        num_of_can1 = len(candidates1)
+        b1s = [b1.copy() for _ in range(num_of_can1)]
+        for ci in range(num_of_can1):
+            b = b1s[ci]
+            c = candidates1[ci]
+            b.choose(*c)
+
+        candidates2 = list(islice(b2.search_candidate_choices(), max_num_of_can))
+        num_of_can2 = len(candidates2)
+        b2s = [b2.copy() for _ in range(num_of_can2)]
+        for ci in range(num_of_can2):
+            b = b2s[ci]
+            c = candidates2[ci]
+            b.choose(*c)
+
+        if not b1s and not b2s:
+            break
+
+        for b in b1s + b2s:
+            s = b.score
+            if s > max1_score:
+                b1 = b
+                max1_score = s
+            elif s > max2_score:
+                b2 = b
+                max2_score = s
+
+        # print(b1.choices_count, file=stderr)
+        # print(b2.choices_count, file=stderr)
+        # print('-', file=stderr)
+
+    if b1.score > b2.score:
+        return b1
+    else:
+        return b2
+
+
 def read_input() -> Board:
     n, m = list(map(int, input().split()))
     initial_points = []
@@ -446,7 +495,7 @@ def output(board: Board):
 
 def main():
     board = read_input()
-    board = solve(board)
+    board = solve2(board)
     output(board)
 
 
