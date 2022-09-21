@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterator
 
 from solver import Line, Coord
 
@@ -8,8 +8,8 @@ class TestLine:
         pass
 
     @staticmethod
-    def _assert_lines(ls1: List[Line], ls2: List[Line]) -> bool:
-        if len(ls1) != len(ls2):
+    def _assert_lines(ls1: Iterator[Line], ls2: Iterator[Line]) -> bool:
+        if len(list(ls1)) != len(list(ls2)):
             return False
         for line in ls1:
             if line not in ls2:

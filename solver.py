@@ -55,10 +55,10 @@ class Line:
         return self._s == other.s and self._e == other.e
 
     @classmethod
-    def new(cls, s: Coord, e: Coord) -> List[SelfLine]:
+    def new(cls, s: Coord, e: Coord) -> Iterator[SelfLine]:
         if abs(e.x - s.x) < 2 and abs(e.y - s.y) < 2:
             return [Line(s, e)]
-        return list(cls._split_line(s, e))
+        return cls._split_line(s, e)
 
     @classmethod
     def _split_line(cls, s: Coord, e: Coord) -> Iterator[SelfLine]:
@@ -219,15 +219,16 @@ class Board:
         return sorted(ret)
 
     @staticmethod
-    def _calc_choice_lines(c: Choice) -> List[Line]:
+    def _calc_choice_lines(c: Choice) -> Iterator[Line]:
+        from itertools import chain
         np = c[0]
         others = c[1]
-        return sum([
+        return chain(
             Line.new(np, others[0]),
             Line.new(others[0], others[1]),
             Line.new(others[1], others[2]),
             Line.new(others[2], np),
-        ], [])
+        )
 
     def choose(self, new_point: Coord, existing_3_points: Tuple[Coord, Coord, Coord]):
         if not isinstance(new_point, Coord):
@@ -307,9 +308,6 @@ class Board:
 
     def search_candidate_choices_from_point(self, p: Coord) -> Iterator[Tuple[Coord, List[Coord]]]:
         def is_valid_choice(c: Choice) -> bool:
-            lines = self._calc_choice_lines(c)
-            if set(lines) & self._lines:
-                return False
             return (
                     0 <= c[0].y < self.size
                     and 0 <= c[0].x < self.size
