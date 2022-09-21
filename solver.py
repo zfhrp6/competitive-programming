@@ -3,7 +3,6 @@
 
 import random
 from collections import namedtuple
-from functools import cached_property
 from sys import stderr
 from typing import Iterator, List, Tuple, Set, Literal, TypeVar, Union
 
@@ -102,18 +101,14 @@ class Board:
         self._points = {p for p in points}
         self._choices: List[Choice] = []
         self._lines: Set[Line] = set()
+        self._board_weight = 0
+        for x in range(self.size):
+            for y in range(self.size):
+                self._board_weight += self.weight(self.size, x, y)
 
     @property
     def points(self) -> Set[Coord]:
         return self._points
-
-    @cached_property
-    def sum_of_weights(self) -> float:
-        s = 0
-        for x in range(self.size):
-            for y in range(self.size):
-                s += self.weight(self.size, x, y)
-        return s
 
     @staticmethod
     def weight(size: int, x: int, y: int) -> float:
@@ -123,7 +118,7 @@ class Board:
     @property
     def score(self) -> int:
         sum_of_w = sum([self.weight(self.size, p.x, p.y) for p in self.points])
-        score = ((10 ** 6) * (self.size ** 2) * sum_of_w) / (self._number_of_initial_points * self.sum_of_weights)
+        score = ((10 ** 6) * (self.size ** 2) * sum_of_w) / (self._number_of_initial_points * self._board_weight)
         return round(score)
 
     def _out_of_range(self, x, y):
@@ -374,6 +369,7 @@ class Board:
         b._choices = [choice for choice in self._choices]
         b._lines = {line for line in self._lines}
         b._points = {p for p in self._points}
+        b._board_weight = self._board_weight
         return b
 
     def debug(self, field=True, choices=True, points=True):
@@ -412,9 +408,13 @@ def solve(board: Board) -> Board:
         if num_of_can == 0:
             break
         bs = [board.copy() for _ in range(num_of_can)]
+        max_score = 0
         for ci in range(num_of_can):
-            bs[ci].choose(*candidates[ci])
-        board = sorted(bs, key=lambda b: b.score, reverse=True)[0]
+            b = bs[ci]
+            c = candidates[ci]
+            b.choose(*c)
+            if b.score > max_score:
+                board = b
     return board
 
 
