@@ -39,6 +39,14 @@ class Solver:
             v = random.choice(self.VECS)
             i2 = i + v[0]
             j2 = j + v[1]
+            r = random.randint(0, 1)
+            if self.C[i][j] == 2:
+                i2 = i - r
+                j2 = j - (1 - r)
+            else:
+                i2 = i + r
+                j2 = j + (1 - r)
+
             if i2 < 0 or i2 >= self.N or j2 < 0 or j2 >= self.N:
                 continue
             if self.C[i2][j2] != 0:
