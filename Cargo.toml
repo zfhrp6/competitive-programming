@@ -1,0 +1,17 @@
+[package]
+name = "ahc003"
+version = "0.1.0"
+authors = ["zfhrp <zfhrp6@users.noreply.github.com>"]
+edition = "2018"
+
+# dependencies added to new project
+[dependencies]
+num-bigint = "0.4.0"
+num-traits = "0.2.14"
+petgraph = "0.5.1"
+proconio = "0.4.3"
+rand = "0.8.3"
+
+[profile.release]
+lto = true
+panic = 'abort'
