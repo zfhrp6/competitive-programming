@@ -1,0 +1,13 @@
+[package]
+name = "apg4b"
+version = "0.1.0"
+authors = ["zfhrp <zfhrp6@users.noreply.github.com>"]
+edition = "2018"
+
+# dependencies added to new project
+[dependencies]
+proconio = "0.4.3"
+
+[profile.release]
+lto = true
+panic = 'abort'
