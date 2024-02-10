@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from doctest import UnexpectedException
 
 
 def debug_print(*args, **kwargs):
@@ -61,6 +62,7 @@ class Problem:
     known: set[Coordinate] = field(default_factory=set)
     has_oil: set[Coordinate] = field(default_factory=set)
     found_oil_sum: int = 0
+    _next_dig: list[Coordinate] = field(default_factory=list)
 
     def __str__(self):
         ret = f"""N: {self.N}
@@ -86,19 +88,30 @@ oil_sum: {self.oil_sum}
         return NotImplemented
 
     def is_solved(self) -> bool:
-        return self.found_oil_sum == self.oil_sum
+        return self.found_oil_sum == self.oil_sum or len(self.known) == self.N**2
 
     def next_dig(self) -> Coordinate:
         return NotImplemented
 
     def next(self, p: Coordinate) -> Coordinate:
+        if self._next_dig:
+            while self._next_dig:
+                candidate = self._next_dig.pop()
+                if candidate not in self.known:
+                    return candidate
         nx, ny = p[0] + 1, p[1]
+        if ny >= self.N and nx >= self.N:
+            return (0, 0)
         if nx >= self.N:
             nx = 0
             ny += 1
-        if (nx, ny) in self.known:
-            return self.next((nx, ny))
-        return (nx, ny)
+        if (nx, ny) not in self.known:
+            return (nx, ny)
+        return self.next((nx, ny))
+    
+    def add_next(self, p: Coordinate):
+        if 0 <= p[0] < self.N and 0 <= p[1] < self.N:
+            self._next_dig.append(p)
 
 
 def main():
@@ -124,6 +137,12 @@ def main():
         resp = input()
         if resp != '0':
             problem.found_oil((i, j), int(resp))
+            # next neighbor
+            problem.add_next((i - 1, j))  # left
+            problem.add_next((i, j - 1))  # up
+            problem.add_next((i + 1, j))  # right
+            problem.add_next((i, j + 1))  # down
+
         (i, j) = problem.next((i, j))
 
     p_answer(problem.has_oil)
