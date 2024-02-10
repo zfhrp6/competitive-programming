@@ -88,6 +88,18 @@ oil_sum: {self.oil_sum}
     def is_solved(self) -> bool:
         return self.found_oil_sum == self.oil_sum
 
+    def next_dig(self) -> Coordinate:
+        return NotImplemented
+
+    def next(self, p: Coordinate) -> Coordinate:
+        nx, ny = p[0] + 1, p[1]
+        if nx >= self.N:
+            nx = 0
+            ny += 1
+        if (nx, ny) in self.known:
+            return self.next((nx, ny))
+        return (nx, ny)
+
 
 def main():
     # read prior information
@@ -105,20 +117,14 @@ def main():
         problem.add_field((d, ps))
     debug_print(problem)
 
-    # drill every square
-    for i in range(N):
-        for j in range(N):
-            p_dig((i, j))
-            resp = input()
-            if resp != '0':
-                problem.found_oil((i, j), int(resp))
-            if problem.is_solved():
-                break
-        else:
-            # inner-breakでない時は継続
-            continue
-        # inner-breakの時は終了
-        break
+    (i, j) = (0, 0)
+    while not problem.is_solved():
+        p_dig((i, j))
+        problem.known.add((i, j))
+        resp = input()
+        if resp != '0':
+            problem.found_oil((i, j), int(resp))
+        (i, j) = problem.next((i, j))
 
     p_answer(problem.has_oil)
     resp = input()
