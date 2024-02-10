@@ -3,10 +3,13 @@ from dataclasses import dataclass, field
 
 def debug_print(*args, **kwargs):
     import sys
+
     print(*args, **kwargs, file=sys.stderr)
+
 
 Coordinate = tuple[int, int]
 Field = tuple[int, list[Coordinate]]
+
 
 def matrix(n: int, mark: None | list[Coordinate] = None) -> str:
     m = ''
@@ -23,6 +26,7 @@ def matrix(n: int, mark: None | list[Coordinate] = None) -> str:
 def dig(p: Coordinate) -> str:
     return f'q 1 {p[0]} {p[1]}'
 
+
 def p_dig(p: Coordinate):
     print(dig(p))
 
@@ -32,16 +36,18 @@ def forecast(ps: list[Coordinate]) -> str:
     s = f'q {len(set_)} ' + ' '.join([f'{p[0]} {p[1]}' for p in set_])
     return s
 
+
 def p_forecast(ps: list[Coordinate]):
     print(forecast(ps))
 
 
-def answer(ps: list[Coordinate]) -> str:
+def answer(ps: set[Coordinate] | list[Coordinate]) -> str:
     set_ = set(ps)
     s = f'a {len(set_)} ' + ' '.join([f'{p[0]} {p[1]}' for p in set_])
     return s
-    
-def p_answer(ps: list[Coordinate]):
+
+
+def p_answer(ps: set[Coordinate] | list[Coordinate]):
     print(answer(ps))
 
 
@@ -50,24 +56,37 @@ class Problem:
     N: int
     M: int
     eps: float
+    oil_sum: int = 0
     fields: list[Field] = field(default_factory=list)
+    known: set[Coordinate] = field(default_factory=set)
+    has_oil: set[Coordinate] = field(default_factory=set)
+    found_oil_sum: int = 0
 
     def __str__(self):
-        ret = f'''N: {self.N}
+        ret = f"""N: {self.N}
 M: {self.M}
 eps: {self.eps}
-'''
+oil_sum: {self.oil_sum}
+"""
         for idx, f in enumerate(self.fields):
             ret += f'field[{idx}](size: {f[0]}):\n'
             ret += matrix(self.N, f[1])
             ret += '\n'
         return ret
-    
+
     def add_field(self, field: Field):
         self.fields.append(field)
+        self.oil_sum += field[0]
+
+    def found_oil(self, p: Coordinate, value: int):
+        self.has_oil.add(p)
+        self.found_oil_sum += value
 
     def solve(self) -> list[Coordinate]:
         return NotImplemented
+
+    def is_solved(self) -> bool:
+        return self.found_oil_sum == self.oil_sum
 
 
 def main():
@@ -82,23 +101,28 @@ def main():
         ps = []
         d = int(line[0])
         for i in range(d):
-            ps.append((int(line[2*i+1]), int(line[2*i+2])))
+            ps.append((int(line[2 * i + 1]), int(line[2 * i + 2])))
         problem.add_field((d, ps))
     debug_print(problem)
-        
+
     # drill every square
-    has_oil = []
     for i in range(N):
         for j in range(N):
             p_dig((i, j))
             resp = input()
-            debug_print(resp)
-            if resp != "0":
-                has_oil.append((i, j))
-        
-    p_answer(has_oil)
+            if resp != '0':
+                problem.found_oil((i, j), int(resp))
+            if problem.is_solved():
+                break
+        else:
+            # inner-breakでない時は継続
+            continue
+        # inner-breakの時は終了
+        break
+
+    p_answer(problem.has_oil)
     resp = input()
-    debug_print(resp)
-    assert resp == "1", resp
+    assert resp == '1', resp
+
 
 main()
