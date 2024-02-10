@@ -99,16 +99,24 @@ oil_sum: {self.oil_sum}
                 candidate = self._next_dig.pop()
                 if candidate not in self.known:
                     return candidate
-        nx, ny = p[0] + 1, p[1]
+        nx, ny = p[0] + 2, p[1]
         if ny >= self.N and nx >= self.N:
-            return (0, 0)
+            return self._minimum_next()
         if nx >= self.N:
-            nx = 0
             ny += 1
+            nx = 0 + (ny % 2)
         if (nx, ny) not in self.known:
             return (nx, ny)
         return self.next((nx, ny))
-    
+
+    def _minimum_next(self) -> Coordinate:
+        for x in range(self.N):
+            for y in range(self.N):
+                p = (x, y)
+                if p not in self.known:
+                    return p
+        raise Exception()
+
     def add_next(self, p: Coordinate):
         if 0 <= p[0] < self.N and 0 <= p[1] < self.N:
             self._next_dig.append(p)
